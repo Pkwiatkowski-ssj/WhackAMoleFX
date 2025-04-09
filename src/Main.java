@@ -72,11 +72,13 @@ public class Main extends Application {
             System.out.println("WHACK! +1");
             score++;
             feedbackLabel.setText("+1");
+            feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: green;");
             clickedButton.setText(" ");
         } else {
             System.out.println("Miss! -1");
             score--;
             feedbackLabel.setText("-1");
+            feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: red;");
         }
 
         scoreLabel.setText("Score: " + score);
