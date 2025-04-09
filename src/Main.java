@@ -18,7 +18,8 @@ public class Main extends Application {
     private Button[][] buttons = new Button[GRID_SIZE][GRID_SIZE];
     private Random random = new Random();
     private int score = 0;
-    private Button currentMole = null;
+    private Button moleButton = null;
+    private Button bunnyButton = null;
 
     private Label scoreLabel = new Label("Score: 0");
     private Label feedbackLabel = new Label("");
@@ -27,8 +28,8 @@ public class Main extends Application {
 
     private String username = "";
     private Timeline moleMover;
-    private double moleDelay = 3.0; // ✅ START at 3 seconds
-    private final double MIN_DELAY = 0.5;
+    private double moleDelay = 3.0;
+    private final double MIN_DELAY = 0.35;
 
     @Override
     public void start(Stage primaryStage) {
@@ -63,10 +64,10 @@ public class Main extends Application {
     }
 
     private void showGameScreen(Stage stage) {
-        // Top Bar: Score | Feedback | Username
         scoreLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         feedbackLabel.setStyle("-fx-font-size: 20px;");
         usernameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        speedLabel.setStyle("-fx-font-size: 14px;");
 
         Region spacerLeft = new Region();
         Region spacerRight = new Region();
@@ -78,7 +79,6 @@ public class Main extends Application {
         topBar.setAlignment(Pos.CENTER);
         topBar.getChildren().addAll(scoreLabel, spacerLeft, feedbackLabel, spacerRight, usernameLabel);
 
-        // Grid of Buttons
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setPadding(new Insets(10));
@@ -97,51 +97,40 @@ public class Main extends Application {
             }
         }
 
-        // Bottom speed label
-        speedLabel.setStyle("-fx-font-size: 14px;");
-        BorderPane.setAlignment(speedLabel, Pos.CENTER);
-        BorderPane.setMargin(speedLabel, new Insets(10));
-
-        // Layout
         BorderPane root = new BorderPane();
         root.setTop(topBar);
         root.setCenter(grid);
         root.setBottom(speedLabel);
+        BorderPane.setAlignment(speedLabel, Pos.CENTER);
+        BorderPane.setMargin(speedLabel, new Insets(10));
 
         Scene scene = new Scene(root, 500, 500);
         stage.setTitle("Whack-a-Mole");
         stage.setScene(scene);
         stage.show();
 
-        startMoleTimer(); // 🟢 Begin the game!
+        startMoleTimer();
     }
 
     private void handleClick(Button clickedButton) {
-        if (clickedButton == currentMole) {
+        if (clickedButton == moleButton) {
             System.out.println("WHACK! +1");
             score++;
             feedbackLabel.setText("+1");
             feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: green;");
-            clickedButton.setText(" ");
 
-            // ✅ Speed up with every hit
-            if (moleDelay > MIN_DELAY) {
-                moleDelay -= 0.2;
-                if (moleDelay < MIN_DELAY) moleDelay = MIN_DELAY;
-
-                speedLabel.setText("Speeding up! Delay: " + String.format("%.2f", moleDelay) + "s");
-
-                moleMover.stop();
-                moleMover = new Timeline(new KeyFrame(Duration.seconds(moleDelay), e -> moveMole()));
-                moleMover.setCycleCount(Timeline.INDEFINITE);
-                moleMover.play();
-            }
-
-        } else {
-            System.out.println("Miss! -1");
-            score--;
-            feedbackLabel.setText("-1");
+            speedUp();           // Speed up the timer
+            moveCharacters();    // Move mole + bunny immediately
+        } else if (clickedButton == bunnyButton) {
+            System.out.println("NOOO! That was the bunny. -2");
+            score -= 2;
+            feedbackLabel.setText("-2");
             feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: red;");
+        } else {
+            System.out.println("Missed! Empty tile. -1");
+            score -= 1;
+            feedbackLabel.setText("-1");
+            feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: orange;");
         }
 
         scoreLabel.setText("Score: " + score);
@@ -151,29 +140,56 @@ public class Main extends Application {
         pause.play();
     }
 
+    private void speedUp() {
+        if (moleDelay > MIN_DELAY) {
+            moleDelay -= 0.2;
+            if (moleDelay < MIN_DELAY) moleDelay = MIN_DELAY;
+
+            speedLabel.setText("Speeding up! Delay: " + String.format("%.2f", moleDelay) + "s");
+
+            moleMover.stop();
+            moleMover = new Timeline(new KeyFrame(Duration.seconds(moleDelay), e -> moveCharacters()));
+            moleMover.setCycleCount(Timeline.INDEFINITE);
+            moleMover.play();
+        }
+    }
+
     private void startMoleTimer() {
-        showRandomMole(); // Show first mole instantly
+        moveCharacters(); // Start with first mole/bunny
 
         speedLabel.setText("Delay: " + String.format("%.2f", moleDelay) + "s");
 
-        moleMover = new Timeline(new KeyFrame(Duration.seconds(moleDelay), e -> moveMole()));
+        moleMover = new Timeline(new KeyFrame(Duration.seconds(moleDelay), e -> moveCharacters()));
         moleMover.setCycleCount(Timeline.INDEFINITE);
         moleMover.play();
     }
 
-    private void moveMole() {
-        showRandomMole();
-    }
-
-    private void showRandomMole() {
-        if (currentMole != null) {
-            currentMole.setText(" ");
+    private void moveCharacters() {
+        if (moleButton != null) {
+            moleButton.setText(" ");
+            moleButton.setStyle("");
+        }
+        if (bunnyButton != null) {
+            bunnyButton.setText(" ");
+            bunnyButton.setStyle("");
         }
 
-        int row = random.nextInt(GRID_SIZE);
-        int col = random.nextInt(GRID_SIZE);
-        currentMole = buttons[row][col];
-        currentMole.setText("🐹");
+        int moleRow, moleCol, bunnyRow, bunnyCol;
+        do {
+            moleRow = random.nextInt(GRID_SIZE);
+            moleCol = random.nextInt(GRID_SIZE);
+            bunnyRow = random.nextInt(GRID_SIZE);
+            bunnyCol = random.nextInt(GRID_SIZE);
+        } while (moleRow == bunnyRow && moleCol == bunnyCol);
+
+        moleButton = buttons[moleRow][moleCol];
+        bunnyButton = buttons[bunnyRow][bunnyCol];
+
+        moleButton.setText("🐹");
+        moleButton.setStyle("-fx-text-fill: brown; -fx-font-size: 20px;");
+
+        bunnyButton.setText("🐰");
+        bunnyButton.setStyle("-fx-text-fill: lightblue; -fx-font-size: 20px;");
     }
 
     public static void main(String[] args) {
