@@ -1,4 +1,6 @@
+import javafx.animation.KeyFrame;
 import javafx.animation.PauseTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,8 +23,12 @@ public class Main extends Application {
     private Label scoreLabel = new Label("Score: 0");
     private Label feedbackLabel = new Label("");
     private Label usernameLabel = new Label("");
+    private Label speedLabel = new Label("");
 
     private String username = "";
+    private Timeline moleMover;
+    private double moleDelay = 3.0; // ✅ START at 3 seconds
+    private final double MIN_DELAY = 0.5;
 
     @Override
     public void start(Stage primaryStage) {
@@ -53,12 +59,11 @@ public class Main extends Application {
             }
         });
 
-        // Pressing Enter in the field also starts the game
         usernameField.setOnAction(e -> enterButton.fire());
     }
 
     private void showGameScreen(Stage stage) {
-        // TOP BAR
+        // Top Bar: Score | Feedback | Username
         scoreLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
         feedbackLabel.setStyle("-fx-font-size: 20px;");
         usernameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
@@ -73,7 +78,7 @@ public class Main extends Application {
         topBar.setAlignment(Pos.CENTER);
         topBar.getChildren().addAll(scoreLabel, spacerLeft, feedbackLabel, spacerRight, usernameLabel);
 
-        // GRID
+        // Grid of Buttons
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setPadding(new Insets(10));
@@ -92,17 +97,23 @@ public class Main extends Application {
             }
         }
 
-        // MAIN LAYOUT
+        // Bottom speed label
+        speedLabel.setStyle("-fx-font-size: 14px;");
+        BorderPane.setAlignment(speedLabel, Pos.CENTER);
+        BorderPane.setMargin(speedLabel, new Insets(10));
+
+        // Layout
         BorderPane root = new BorderPane();
         root.setTop(topBar);
         root.setCenter(grid);
+        root.setBottom(speedLabel);
 
         Scene scene = new Scene(root, 500, 500);
         stage.setTitle("Whack-a-Mole");
         stage.setScene(scene);
         stage.show();
 
-        showRandomMole();
+        startMoleTimer(); // 🟢 Begin the game!
     }
 
     private void handleClick(Button clickedButton) {
@@ -112,6 +123,20 @@ public class Main extends Application {
             feedbackLabel.setText("+1");
             feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: green;");
             clickedButton.setText(" ");
+
+            // ✅ Speed up with every hit
+            if (moleDelay > MIN_DELAY) {
+                moleDelay -= 0.2;
+                if (moleDelay < MIN_DELAY) moleDelay = MIN_DELAY;
+
+                speedLabel.setText("Speeding up! Delay: " + String.format("%.2f", moleDelay) + "s");
+
+                moleMover.stop();
+                moleMover = new Timeline(new KeyFrame(Duration.seconds(moleDelay), e -> moveMole()));
+                moleMover.setCycleCount(Timeline.INDEFINITE);
+                moleMover.play();
+            }
+
         } else {
             System.out.println("Miss! -1");
             score--;
@@ -124,7 +149,19 @@ public class Main extends Application {
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(e -> feedbackLabel.setText(""));
         pause.play();
+    }
 
+    private void startMoleTimer() {
+        showRandomMole(); // Show first mole instantly
+
+        speedLabel.setText("Delay: " + String.format("%.2f", moleDelay) + "s");
+
+        moleMover = new Timeline(new KeyFrame(Duration.seconds(moleDelay), e -> moveMole()));
+        moleMover.setCycleCount(Timeline.INDEFINITE);
+        moleMover.play();
+    }
+
+    private void moveMole() {
         showRandomMole();
     }
 
