@@ -28,7 +28,7 @@ public class Main extends Application {
     private String username = "";
     private Timeline moleMover;
     private double moleDelay = 3.0; // ✅ START at 3 seconds
-    private final double MIN_DELAY = 0.3;
+    private final double MIN_DELAY = 0.5;
 
     @Override
     public void start(Stage primaryStage) {
