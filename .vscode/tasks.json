@@ -1,0 +1,24 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "javac",
+      "args": [
+        "--module-path",
+        "C:/Users/Owner/Desktop/QU_SPRING_25/Version_Control_C/javafx-sdk-24/lib",
+        "--add-modules",
+        "javafx.controls",
+        "-d",
+        "${workspaceFolder}/bin",
+        "src/Main.java"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

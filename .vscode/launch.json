@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Launch JavaFX",
+      "request": "launch",
+      "mainClass": "Main",
+      "vmArgs": "--module-path C:/Users/Owner/Desktop/QU_SPRING_25/Version_Control_C/javafx-sdk-24/lib --add-modules javafx.controls",
+      "classPaths": [
+        "${workspaceFolder}/bin"
+      ]
+    }
+  ]
+}
