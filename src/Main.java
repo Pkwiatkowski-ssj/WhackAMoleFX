@@ -47,15 +47,19 @@ public class Main extends Application {
 
     private void handleClick(Button clickedButton) {
         if (clickedButton == currentMole) {
-            System.out.println("WHACK!");
+            System.out.println("WHACK! +1");
             score++;
             System.out.println("Score: " + score);
             clickedButton.setText(" ");
             showRandomMole();
         } else {
-            System.out.println("Miss!");
+            System.out.println("Miss! -1");
+            score--;
+            System.out.println("Score: " + score);
         }
     }
+    
+    
 
     private void showRandomMole() {
         // Clear current mole
