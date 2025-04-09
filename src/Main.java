@@ -3,11 +3,8 @@ import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -23,19 +20,60 @@ public class Main extends Application {
 
     private Label scoreLabel = new Label("Score: 0");
     private Label feedbackLabel = new Label("");
+    private Label usernameLabel = new Label("");
+
+    private String username = "";
 
     @Override
     public void start(Stage primaryStage) {
-        // Top bar with score and feedback
-        scoreLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
-        feedbackLabel.setStyle("-fx-font-size: 20px; -fx-text-fill: red;");
+        showUsernameScreen(primaryStage);
+    }
 
-        HBox topBar = new HBox(20);
+    private void showUsernameScreen(Stage stage) {
+        Label prompt = new Label("Enter your username:");
+        TextField usernameField = new TextField();
+        Button enterButton = new Button("Enter Game");
+
+        VBox layout = new VBox(10);
+        layout.setAlignment(Pos.CENTER);
+        layout.setPadding(new Insets(20));
+        layout.getChildren().addAll(prompt, usernameField, enterButton);
+
+        Scene scene = new Scene(layout, 400, 300);
+        stage.setScene(scene);
+        stage.setTitle("Whack-a-Mole Login");
+        stage.show();
+
+        enterButton.setOnAction(e -> {
+            String input = usernameField.getText().trim();
+            if (!input.isEmpty()) {
+                username = input;
+                usernameLabel.setText(username);
+                showGameScreen(stage);
+            }
+        });
+
+        // Pressing Enter in the field also starts the game
+        usernameField.setOnAction(e -> enterButton.fire());
+    }
+
+    private void showGameScreen(Stage stage) {
+        // TOP BAR
+        scoreLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        feedbackLabel.setStyle("-fx-font-size: 20px;");
+        usernameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+
+        Region spacerLeft = new Region();
+        Region spacerRight = new Region();
+        HBox.setHgrow(spacerLeft, Priority.ALWAYS);
+        HBox.setHgrow(spacerRight, Priority.ALWAYS);
+
+        HBox topBar = new HBox(10);
         topBar.setPadding(new Insets(10));
         topBar.setAlignment(Pos.CENTER);
-        topBar.getChildren().addAll(scoreLabel, feedbackLabel);
+        topBar.getChildren().addAll(scoreLabel, spacerLeft, feedbackLabel, spacerRight, usernameLabel);
 
-        // Game grid
+        // GRID
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setPadding(new Insets(10));
@@ -54,17 +92,17 @@ public class Main extends Application {
             }
         }
 
-        // Layout root
+        // MAIN LAYOUT
         BorderPane root = new BorderPane();
         root.setTop(topBar);
         root.setCenter(grid);
 
-        Scene scene = new Scene(root, 400, 450);
-        primaryStage.setTitle("Whack-a-Mole");
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        Scene scene = new Scene(root, 500, 500);
+        stage.setTitle("Whack-a-Mole");
+        stage.setScene(scene);
+        stage.show();
 
-        showRandomMole(); // Start game
+        showRandomMole();
     }
 
     private void handleClick(Button clickedButton) {
@@ -83,7 +121,6 @@ public class Main extends Application {
 
         scoreLabel.setText("Score: " + score);
 
-        // Fade the feedback after 1 second
         PauseTransition pause = new PauseTransition(Duration.seconds(1));
         pause.setOnFinished(e -> feedbackLabel.setText(""));
         pause.play();
